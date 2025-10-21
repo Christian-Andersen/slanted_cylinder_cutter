@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Slanted Cylinder Calculator</title>
+    <style>
+        /* --- General Styling --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 20px 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        /* --- Two-Column Layout --- */
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .left-panel {
+            flex: 1 1 500px;
+        }
+        .right-panel {
+            flex: 1 1 450px;
+            min-width: 450px;
+        }
+
+        /* --- Input & Results Layout --- */
+        .input-group {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            /* NEW: Flex layout for a grid-like feel */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 20px; /* row-gap column-gap */
+        }
+        .input-group h3 {
+            width: 100%; /* Make title span full width */
+            margin-top: 0;
+            font-size: 1.1em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+        .input-item {
+           flex: 1 1 200px; /* Allow items to grow from a base width */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1.1em;
+        }
+
+        /* --- Visualization & Table Area --- */
+        .visualization-area {
+            text-align: center;
+            position: sticky; 
+            top: 20px;
+        }
+        .pipe-display {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .pipe-rect, .pipe-cylinder {
+            padding: 10px;
+            border: 1px dashed #999;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        
+        canvas {
+            border: 2px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .table-section {
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: right;
+        }
+        th {
+            background-color: #e9f7ff;
+            color: #0056b3;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📐 Advanced Slanted Cylinder Calculator</h1>
+
+        <div class="main-layout">
+            <div class="left-panel">
+                <div class="input-group">
+                    <h3>Dimensions (All Editable)</h3>
+                    <div class="input-item">
+                        <label for="radius">Radius (r) - mm:</label>
+                        <input type="number" id="radius" value="50" min="0.1" step="any" oninput="updateCalculations('radius')" onchange="formatInput(this)">
+                    </div>
+                    <div class="input-item">
+                        <label for="circumference">Circumference (C) - mm:</label>
+                        <input type="number" id="circumference" min="0.1" step="any" oninput="updateCalculations('circumference')" onchange="formatInput(this)">
+                    </div>
+                    <div class="input-item">
+                        <label for="minHeight">Min Height (h_min) - mm:</label>
+                        <input type="number" id="minHeight" value="100" min="0.1" step="any" oninput="updateCalculations('minHeight')" onchange="formatInput(this)">
+                    </div>
+                    <div class="input-item">
+                        <label for="maxHeight">Max Height (h_max) - mm:</label>
+                        <input type="number" id="maxHeight" min="0.1" step="any" oninput="updateCalculations('maxHeight')" onchange="formatInput(this)">
+                    </div>
+                     <div class="input-item">
+                        <label for="angle">Slant Angle (α) - deg:</label>
+                        <input type="number" id="angle" value="30" min="0.1" max="89.9" step="any" oninput="updateCalculations('angle')" onchange="formatInput(this)">
+                    </div>
+                    <div class="input-item">
+                        <label for="heightDiff">Height Diff (Δh) - mm:</label>
+                        <input type="number" id="heightDiff" min="0.1" step="any" oninput="updateCalculations('heightDiff')" onchange="formatInput(this)">
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <h2>Split Height Calculations</h2>
+                    <div class="input-item" style="max-width: 250px;">
+                        <label for="splits">Number of Splits:</label>
+                        <input type="number" id="splits" value="8" min="2" step="1" oninput="updateCalculations()">
+                    </div>
+                    <div id="split-table-container"></div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                 <div class="visualization-area">
+                    <h2>Visualization</h2>
+                    <div class="pipe-display">
+                        <div class="pipe-rect">
+                            <h3>Flat Paper Cut (Net)</h3>
+                            <canvas id="flat-canvas" width="450" height="350"></canvas>
+                            <p class="footer-note">The curved line is a cosine wave.</p>
+                        </div>
+                        <div class="pipe-cylinder">
+                            <h3>Rolled Cylinder</h3>
+                            <canvas id="cylinder-canvas" width="450" height="350"></canvas>
+                            <p class="footer-note">The cut end forms an ellipse.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PI = Math.PI;
+
+        function formatInput(element) {
+            const value = parseFloat(element.value);
+            if (!isNaN(value)) {
+                element.value = value.toFixed(2);
+            }
+        }
+
+        function updateCalculations(sourceId) {
+            let r = parseFloat(document.getElementById('radius').value);
+            let h_min = parseFloat(document.getElementById('minHeight').value);
+            let alpha_deg = parseFloat(document.getElementById('angle').value);
+            let C = parseFloat(document.getElementById('circumference').value);
+            let delta_h = parseFloat(document.getElementById('heightDiff').value);
+            let h_max = parseFloat(document.getElementById('maxHeight').value);
+
+            if (sourceId && isNaN(parseFloat(document.getElementById(sourceId).value))) {
+                return; // Pause calculation if the user is typing something invalid (e.g., "15-")
+            }
+
+            let alpha_rad = alpha_deg * (PI / 180);
+
+            // Core calculation logic based on which input triggered the change
+            switch (sourceId) {
+                case 'radius':
+                    C = 2 * PI * r;
+                    delta_h = 2 * r * Math.tan(alpha_rad);
+                    h_max = h_min + delta_h;
+                    break;
+                case 'circumference':
+                    r = C / (2 * PI);
+                    delta_h = 2 * r * Math.tan(alpha_rad);
+                    h_max = h_min + delta_h;
+                    break;
+                case 'angle':
+                    delta_h = 2 * r * Math.tan(alpha_rad);
+                    h_max = h_min + delta_h;
+                    break;
+                case 'minHeight':
+                    h_max = h_min + delta_h;
+                    break;
+                case 'heightDiff':
+                    delta_h = Math.max(0, delta_h);
+                    h_max = h_min + delta_h;
+                    alpha_rad = Math.atan(delta_h / (2 * r));
+                    alpha_deg = alpha_rad * (180 / PI);
+                    break;
+                case 'maxHeight':
+                    h_min = h_max - delta_h;
+                    h_min = Math.max(0, h_min);
+                    break;
+            }
+
+            if (isNaN(r) || r <= 0 || isNaN(h_min) || isNaN(alpha_deg) || alpha_deg <= 0 || alpha_deg >= 90) {
+                drawFlatCut(0, 0, 0, 0, 0);
+                drawCylinder(0, 0, 0);
+                document.getElementById('split-table-container').innerHTML = '';
+                return;
+            }
+
+            // Update all input fields EXCEPT the one being edited
+            const results = {
+                radius: r, circumference: C, minHeight: h_min,
+                heightDiff: delta_h, maxHeight: h_max, angle: alpha_deg
+            };
+            for (const key in results) {
+                if (key !== sourceId) {
+                    const el = document.getElementById(key);
+                    if (el) el.value = results[key].toFixed(2);
+                }
+            }
+            
+            const splits = parseInt(document.getElementById('splits').value);
+            if (!isNaN(splits) && splits >= 2) {
+                generateSplitTable(splits, r, h_min, alpha_rad, C);
+            }
+
+            // Update visualizations
+            drawFlatCut(C, h_min, r, alpha_rad, splits);
+            drawCylinder(r, h_min, alpha_rad);
+        }
+        
+        function generateSplitTable(splits, r, h_min, alpha_rad, C) {
+            const container = document.getElementById('split-table-container');
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Split #</th>
+                            <th>Angle (°)</th>
+                            <th>Distance (mm)</th>
+                            <th>Height (mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (let i = 0; i <= splits; i++) {
+                const angle_deg = i * (360 / splits);
+                const angle_rad_at_split = angle_deg * (PI / 180);
+                const distance = (i / splits) * C;
+                // Height on the unrolled net is based on (1 - cos)
+                const height = h_min + r * Math.tan(alpha_rad) * (1 - Math.cos(angle_rad_at_split));
+
+                tableHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${angle_deg.toFixed(1)}</td>
+                        <td>${distance.toFixed(2)}</td>
+                        <td>${height.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+        }
+
+        function drawFlatCut(C, h_min, r, alpha_rad, splits) {
+            const canvas = document.getElementById('flat-canvas');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+            
+            ctx.clearRect(0, 0, W, H);
+            if (C <= 0 || h_min < 0) return;
+
+            const delta_h = 2 * r * Math.tan(alpha_rad);
+            const h_max = h_min + delta_h;
+
+            const padding = 45;
+            const scale = Math.min((W - padding * 2) / C, (H - padding * 2) / h_max);
+            
+            const drawW = C * scale;
+            const drawH_min = h_min * scale;
+            const drawDeltaH = delta_h * scale;
+            
+            const offsetX = (W - drawW) / 2;
+            const offsetY = H - drawH_min - drawDeltaH - padding / 2;
+            const bottomY = offsetY + drawH_min + drawDeltaH;
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(offsetX, bottomY);
+            ctx.lineTo(offsetX + drawW, bottomY);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#d9534f';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let i = 0; i <= drawW; i++) {
+                const x_c = (i / drawW) * C;  
+                const angle_at_x = x_c / r;
+                const h_c = h_min + r * Math.tan(alpha_rad) * (1 - Math.cos(angle_at_x));
+                const y = offsetY + (h_max - h_c) * scale;
+                
+                if (i === 0) ctx.moveTo(offsetX + i, y);
+                else ctx.lineTo(offsetX + i, y);
+            }
+            ctx.stroke();
+
+            if (splits > 0) {
+                for (let i = 0; i <= splits; i++) {
+                    const x_c = (i / splits) * C;
+                    const angle_at_x = x_c / r;
+                    const h_c = h_min + r * Math.tan(alpha_rad) * (1 - Math.cos(angle_at_x));
+                    
+                    const canvasX = offsetX + x_c * scale;
+                    const canvasY = offsetY + (h_max - h_c) * scale;
+                    
+                    ctx.beginPath();
+                    ctx.setLineDash([2, 3]);
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(canvasX, bottomY);
+                    ctx.lineTo(canvasX, canvasY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.beginPath();
+                    ctx.fillStyle = '#0056b3';
+                    ctx.arc(canvasX, canvasY, 3, 0, 2 * PI);
+                    ctx.fill();
+                }
+            }
+
+            ctx.fillStyle = '#555';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('h_min', offsetX - 5, offsetY + drawDeltaH + 5);
+            ctx.fillText('h_max', offsetX - 5, offsetY + 5);
+            ctx.textAlign = 'center';
+            ctx.fillText(`C = ${C.toFixed(1)} mm`, offsetX + drawW / 2, H - 5);
+        }
+        
+        function drawCylinder(r, h_min, alpha_rad) {
+            const canvas = document.getElementById('cylinder-canvas');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+            
+            ctx.clearRect(0, 0, W, H);
+            if (r <= 0) return;
+
+            const delta_h = 2 * r * Math.tan(alpha_rad);
+            const h_max = h_min + delta_h;
+
+            const padding = 50;
+            const scale = Math.min((W - padding) / (2 * r), (H - padding) / h_max);
+
+            const drawR = r * scale;
+            const centerX = W / 2;
+            const bottomY = H - padding/2;
+            const perspective = 0.35;
+
+            // Geometrically correct formula for height (z) at any angle (theta) around the cylinder
+            const getHeightAtAngle = (theta) => h_min + r * Math.tan(alpha_rad) * (1 + Math.sin(theta));
+
+            const top_points = [];
+            for (let i = 0; i <= 360; i++) {
+                const theta = i * PI / 180;
+                const h = getHeightAtAngle(theta);
+                const canvasX = centerX + drawR * Math.cos(theta);
+                const canvasY = bottomY - (h * scale) + (drawR * Math.sin(theta) * perspective);
+                top_points.push({x: canvasX, y: canvasY});
+            }
+
+            // Draw base (only visible part)
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(centerX, bottomY, drawR, drawR * perspective, 0, 0, PI);
+            ctx.stroke();
+
+            // Draw side lines
+            const left_point = top_points[180];
+            const right_point = top_points[0];
+            ctx.beginPath();
+            ctx.moveTo(centerX - drawR, bottomY);
+            ctx.lineTo(left_point.x, left_point.y);
+            ctx.moveTo(centerX + drawR, bottomY);
+            ctx.lineTo(right_point.x, right_point.y);
+            ctx.stroke();
+
+            // Draw top ellipse
+            ctx.beginPath();
+            ctx.strokeStyle = '#d9534f';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            for(let i = 180; i <= 360; i++) {
+                if (i === 180) ctx.moveTo(top_points[i].x, top_points[i].y);
+                else ctx.lineTo(top_points[i].x, top_points[i].y);
+            }
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            for(let i = 0; i <= 180; i++) {
+                if (i === 0) ctx.moveTo(top_points[i].x, top_points[i].y);
+                else ctx.lineTo(top_points[i].x, top_points[i].y);
+            }
+            ctx.stroke();
+
+            // Add labels
+            const h_min_point = top_points[270];
+            const h_max_point = top_points[90];
+            ctx.fillStyle = '#555';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('h_max', h_max_point.x, h_max_point.y - 8);
+            ctx.fillText('h_min', h_min_point.x, h_min_point.y + 15);
+        }
+
+        window.onload = () => {
+             updateCalculations('radius');
+        };
+    </script>
+
+</body>
+</html>
