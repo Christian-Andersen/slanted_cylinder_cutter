@@ -145,12 +145,12 @@
                 <div class="input-group">
                     <h3>Dimensions (All Editable)</h3>
                     <div class="input-item">
-                        <label for="radius">Radius (r) - mm:</label>
-                        <input type="number" id="radius" value="50" min="0.1" step="any" oninput="updateCalculations('radius')" onchange="formatInput(this)">
+                        <label for="diameter">Diameter (r) - mm:</label>
+                        <input type="number" id="diameter" value="50" min="0.1" step="any" oninput="updateCalculations('diameter')" onchange="formatInput(this)">
                     </div>
                     <div class="input-item">
-                        <label for="circumference">Circumference (C) - mm:</label>
-                        <input type="number" id="circumference" min="0.1" step="any" oninput="updateCalculations('circumference')" onchange="formatInput(this)">
+                        <label for="radius">Radius (r) - mm:</label>
+                        <input type="number" id="radius" value="50" min="0.1" step="any" oninput="updateCalculations('radius')" onchange="formatInput(this)">
                     </div>
                     <div class="input-item">
                         <label for="minHeight">Min Height (h_min) - mm:</label>
@@ -160,13 +160,17 @@
                         <label for="maxHeight">Max Height (h_max) - mm:</label>
                         <input type="number" id="maxHeight" min="0.1" step="any" oninput="updateCalculations('maxHeight')" onchange="formatInput(this)">
                     </div>
-                     <div class="input-item">
-                        <label for="angle">Slant Angle (α) - deg:</label>
-                        <input type="number" id="angle" value="30" min="0.1" max="89.9" step="any" oninput="updateCalculations('angle')" onchange="formatInput(this)">
-                    </div>
                     <div class="input-item">
                         <label for="heightDiff">Height Diff (Δh) - mm:</label>
                         <input type="number" id="heightDiff" min="0.1" step="any" oninput="updateCalculations('heightDiff')" onchange="formatInput(this)">
+                    </div>
+                    <div class="input-item">
+                        <label for="circumference">Circumference (C) - mm:</label>
+                        <input type="number" id="circumference" min="0.1" step="any" oninput="updateCalculations('circumference')" onchange="formatInput(this)">
+                    </div>
+                     <div class="input-item">
+                        <label for="angle">Slant Angle (α) - deg:</label>
+                        <input type="number" id="angle" value="30" min="0.1" max="89.9" step="any" oninput="updateCalculations('angle')" onchange="formatInput(this)">
                     </div>
                 </div>
 
@@ -211,6 +215,7 @@
         }
 
         function updateCalculations(sourceId) {
+            let d = parseFloat(document.getElementById('diameter').value);
             let r = parseFloat(document.getElementById('radius').value);
             let h_min = parseFloat(document.getElementById('minHeight').value);
             let alpha_deg = parseFloat(document.getElementById('angle').value);
@@ -226,7 +231,14 @@
 
             // Core calculation logic based on which input triggered the change
             switch (sourceId) {
+                case 'diameter':
+                    r = d / 2;
+                    C = 2 * PI * r;
+                    delta_h = 2 * r * Math.tan(alpha_rad);
+                    h_max = h_min + delta_h;
+                    break;
                 case 'radius':
+                    d = 2 * r;
                     C = 2 * PI * r;
                     delta_h = 2 * r * Math.tan(alpha_rad);
                     h_max = h_min + delta_h;
